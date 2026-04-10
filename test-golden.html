@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Golden Tests — Tara Bala</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    .pass { color: #4ec9b0; }
+    .fail { color: #f48771; }
+    .section { color: #569cd6; margin-top: 16px; }
+    .info { color: #9cdcfe; }
+  </style>
+</head>
+<body>
+  <h1>Golden Tests</h1>
+  <pre id="out">Загрузка эфемерид...</pre>
+
+  <script type="module">
+    import { initSwissEph, julday, getMoonSiderealLongitude, getAyanamsa } from './js/swiss.js';
+    import {
+      getNakshatraIndex, getTaraNumber, getTaraClass,
+      getNakshatra, checkBoundary
+    } from './js/calculator.js';
+    import { parseOffset } from './js/data.js';
+
+    const out = document.getElementById('out');
+    let passed = 0, failed = 0;
+
+    function assert(cond, msg) {
+      if (cond) {
+        passed++;
+        out.innerHTML += `<span class="pass">PASS</span> ${msg}\n`;
+      } else {
+        failed++;
+        out.innerHTML += `<span class="fail">FAIL</span> ${msg}\n`;
+      }
+    }
+
+    await initSwissEph();
+
+    out.innerHTML = '';
+
+    // --- parseOffset tests ---
+    out.innerHTML += `<span class="section">=== parseOffset (без WASM) ===</span>\n`;
+
+    assert(parseOffset('offset:+4') === 240, 'UTC+4 = 240 min');
+    assert(parseOffset('offset:-5') === -300, 'UTC-5 = -300 min');
+    assert(parseOffset('offset:+5:30') === 330, 'UTC+5:30 = 330 min');
+    assert(parseOffset('offset:0') === 0, 'UTC+0 = 0 min');
+
+    // --- Swiss Ephemeris ---
+    out.innerHTML += `\n<span class="section">=== 2000-01-01 12:00 UTC (J2000 epoch) ===</span>\n`;
+
+    const jd1 = julday(2000, 1, 1, 12.0);
+    out.innerHTML += `<span class="info">JD: ${jd1}</span>\n`;
+    assert(Math.abs(jd1 - 2451545.0) < 0.001, `JD for J2000 epoch ≈ 2451545, got ${jd1}`);
+
+    const moon1 = getMoonSiderealLongitude(jd1);
+    out.innerHTML += `<span class="info">Moon sidereal: ${moon1.toFixed(4)}°</span>\n`;
+    assert(moon1 >= 0 && moon1 < 360, `Moon longitude in valid range [0, 360), got ${moon1.toFixed(2)}`);
+
+    const nak1 = getNakshatraIndex(moon1);
+    const nakData1 = getNakshatra(nak1);
+    out.innerHTML += `<span class="info">Nakshatra: ${nak1 + 1} — ${nakData1.nameRu} (${nakData1.nameSanskrit})</span>\n`;
+    assert(nak1 >= 0 && nak1 <= 26, `Valid nakshatra index ${nak1}`);
+
+    const aya1 = getAyanamsa(jd1);
+    out.innerHTML += `<span class="info">Ayanamsa: ${aya1.toFixed(6)}°</span>\n`;
+    assert(Math.abs(aya1 - 23.85) < 0.5, `Ayanamsa ≈ 23.85° for J2000, got ${aya1.toFixed(4)}`);
+
+    // --- Current date ---
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const todayJD = julday(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate(),
+      now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600);
+
+    out.innerHTML += `\n<span class="section">=== ${todayStr} (сейчас) ===</span>\n`;
+
+    const moon2 = getMoonSiderealLongitude(todayJD);
+    const nak2 = getNakshatraIndex(moon2);
+    out.innerHTML += `<span class="info">Moon: ${moon2.toFixed(4)}° → Nakshatra ${nak2 + 1} — ${getNakshatra(nak2).nameRu}</span>\n`;
+    assert(moon2 >= 0 && moon2 < 360, `Moon longitude in [0, 360), got ${moon2.toFixed(2)}`);
+
+    // --- Tara calculation for current moment ---
+    const janmaIdx = 0; // Ашвини
+    const taraNum = getTaraNumber(janmaIdx, nak2);
+    const taraClass = getTaraClass(taraNum);
+    out.innerHTML += `<span class="info">Tara (from Ashwini to current): ${taraNum}, class ${taraClass + 1}</span>\n`;
+    assert(taraNum >= 1 && taraNum <= 27, `Tara number in [1, 27], got ${taraNum}`);
+    assert(taraClass >= 0 && taraClass <= 8, `Tara class in [0, 8], got ${taraClass}`);
+
+    // --- Boundary check ---
+    const boundary = checkBoundary(moon2);
+    out.innerHTML += `<span class="info">Near boundary: ${boundary.isNearBoundary}, direction: ${boundary.direction}</span>\n`;
+    assert(boundary.isNearBoundary === true || boundary.isNearBoundary === false, 'checkBoundary returns valid result');
+
+    // --- Consistency: ayanamsa increases ---
+    out.innerHTML += `\n<span class="section">=== Consistency checks ===</span>\n`;
+
+    const jd3 = julday(2025, 1, 1, 12.0);
+    const aya2 = getAyanamsa(jd3);
+    const aya3 = getAyanamsa(todayJD);
+    out.innerHTML += `<span class="info">Ayanamsa 2025-01-01: ${aya2.toFixed(6)}°</span>\n`;
+    out.innerHTML += `<span class="info">Ayanamsa ${todayStr}: ${aya3.toFixed(6)}°</span>\n`;
+    assert(aya3 > aya2, `Ayanamsa increases: 2025=${aya2.toFixed(4)}, ${todayStr}=${aya3.toFixed(4)}`);
+
+    // Moon longitude consistency: moon moves forward
+    const moonEarlier = getMoonSiderealLongitude(jd3);
+    const moonLater = getMoonSiderealLongitude(todayJD);
+    // Moon moves ~0.5°/day forward, so total movement should be large
+    const totalDays = todayJD - jd3;
+    const expectedMovement = totalDays * 0.5; // rough estimate
+    const actualMovement = normalize360(moonLater - moonEarlier);
+    out.innerHTML += `<span class="info">Days between: ${totalDays.toFixed(0)}, Moon movement: ${actualMovement.toFixed(1)}° (expected ~${expectedMovement.toFixed(0)}°)</span>\n`;
+    assert(actualMovement > expectedMovement * 0.8 && actualMovement < expectedMovement * 1.2,
+      `Moon movement in plausible range`);
+
+    // --- JD round-trip ---
+    out.innerHTML += `\n<span class="section">=== Julian Day round-trip ===</span>\n`;
+
+    const testJD = julday(1990, 5, 3, 8.5);
+    out.innerHTML += `<span class="info">JD for 1990-05-03 08:30: ${testJD}</span>\n`;
+    assert(testJD > 2440000 && testJD < 2460000, 'JD in plausible range for 1990');
+
+    // Summary
+    out.innerHTML += `\n<span class="section">=== ИТОГО ===</span>\n`;
+    out.innerHTML += `Passed: ${passed}, Failed: ${failed}\n`;
+    if (failed === 0) {
+      out.innerHTML += `<span class="pass">ВСЕ GOLDEN ТЕСТЫ ПРОЙДЕНЫ</span>\n`;
+    } else {
+      out.innerHTML += `<span class="fail">ЕСТЬ ПАВШИЕ ТЕСТЫ</span>\n`;
+    }
+  </script>
+</body>
+</html>

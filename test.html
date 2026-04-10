@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Тесты — Калькулятор Тара Балы</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    .pass { color: #4ec9b0; }
+    .fail { color: #f48771; }
+    .section { color: #569cd6; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Тесты</h1>
+  <pre id="out"></pre>
+
+  <script type="module">
+    import {
+      normalize360, getNakshatraIndex, getTaraNumber, getTaraClass,
+      getNakshatra, getTaraClassInfo, checkBoundary
+    } from './js/calculator.js';
+    import { NAKSHATRAS, TARA_CLASSES, TIMEZONES, NAKSHATRA_SIZE, parseOffset } from './js/data.js';
+
+    const out = document.getElementById('out');
+    let passed = 0, failed = 0;
+
+    function assert(cond, msg) {
+      if (cond) {
+        passed++;
+        out.innerHTML += `<span class="pass">PASS</span> ${msg}\n`;
+      } else {
+        failed++;
+        out.innerHTML += `<span class="fail">FAIL</span> ${msg}\n`;
+      }
+    }
+
+    // --- Data tests ---
+    out.innerHTML += `<span class="section">=== NAKSHATRAS ===</span>\n`;
+
+    assert(NAKSHATRAS.length === 27, `27 nakshatras, got ${NAKSHATRAS.length}`);
+    assert(NAKSHATRAS[0].nameRu === 'Ашвини', 'First nakshatra is Ашвини');
+    assert(NAKSHATRAS[0].nameSanskrit === 'Ashwini', 'First nakshatra sanskrit is Ashwini');
+    assert(NAKSHATRAS[26].nameRu === 'Ревати', 'Last nakshatra is Ревати');
+    assert(NAKSHATRAS[0].id === 0, 'First id is 0');
+    assert(NAKSHATRAS[26].id === 26, 'Last id is 26');
+    assert(NAKSHATRAS.every(n => n.nameRu && n.nameSanskrit), 'All nakshatras have nameRu and nameSanskrit');
+
+    out.innerHTML += `\n<span class="section">=== TARA_CLASSES ===</span>\n`;
+
+    assert(TARA_CLASSES.length === 9, `9 tara classes, got ${TARA_CLASSES.length}`);
+    assert(TARA_CLASSES[0].nameRu === 'Джанма', 'First class is Джанма');
+    assert(TARA_CLASSES[0].favorability === 'negativ', 'Джанма favorability = negativ');
+    assert(TARA_CLASSES[1].favorability === 'wealth', 'Самартхья favorability = wealth');
+    assert(TARA_CLASSES[2].favorability === 'danger', 'Випат favorability = danger');
+    assert(TARA_CLASSES[3].favorability === 'prosperity', 'Кшема favorability = prosperity');
+    assert(TARA_CLASSES[4].favorability === 'obstacles', 'Пратьяк favorability = obstacles');
+    assert(TARA_CLASSES[5].favorability === 'realization', 'Садхака favorability = realization');
+    assert(TARA_CLASSES[6].favorability === 'dangers', 'Вадха favorability = dangers');
+    assert(TARA_CLASSES[7].favorability === 'good', 'Митра favorability = good');
+    assert(TARA_CLASSES[8].favorability === 'very_good', 'Ати-Митра favorability = very_good');
+
+    out.innerHTML += `\n<span class="section">=== TIMEZONES ===</span>\n`;
+
+    assert(TIMEZONES.length >= 30, `>=30 timezones, got ${TIMEZONES.length}`);
+    assert(TIMEZONES.some(tz => tz.value === 'offset:+3'), 'Has UTC+3');
+    assert(TIMEZONES.some(tz => tz.value === 'offset:+4'), 'Has UTC+4');
+    assert(TIMEZONES.some(tz => tz.value === 'offset:+5:30'), 'Has UTC+5:30');
+    assert(TIMEZONES.some(tz => tz.value === 'offset:-5'), 'Has UTC-5');
+    assert(TIMEZONES.every(tz => tz.value && tz.label), 'All timezones have value and label');
+
+    out.innerHTML += `\n<span class="section">=== parseOffset ===</span>\n`;
+
+    assert(parseOffset('offset:+4') === 240, 'offset:+4 = 240 min');
+    assert(parseOffset('offset:-5') === -300, 'offset:-5 = -300 min');
+    assert(parseOffset('offset:+5:30') === 330, 'offset:+5:30 = 330 min');
+    assert(parseOffset('offset:+5:45') === 345, 'offset:+5:45 = 345 min');
+    assert(parseOffset('offset:0') === 0, 'offset:0 = 0 min');
+    assert(parseOffset('offset:-12') === -720, 'offset:-12 = -720 min');
+    assert(parseOffset('Europe/Moscow') === null, 'IANA timezone returns null');
+    assert(parseOffset('auto') === null, 'auto returns null');
+    assert(parseOffset('') === null, 'empty string returns null');
+
+    assert(Math.abs(NAKSHATRA_SIZE - 13.333333) < 0.0001, `NAKSHATRA_SIZE ≈ 13.333, got ${NAKSHATRA_SIZE}`);
+
+    // --- Calculator tests ---
+    out.innerHTML += `\n<span class="section">=== normalize360 ===</span>\n`;
+
+    assert(normalize360(0) === 0, 'normalize360(0) = 0');
+    assert(normalize360(360) === 0, 'normalize360(360) = 0');
+    assert(normalize360(361) === 1, 'normalize360(361) = 1');
+    assert(normalize360(-1) === 359, 'normalize360(-1) = 359');
+    assert(normalize360(720) === 0, 'normalize360(720) = 0');
+    assert(normalize360(180) === 180, 'normalize360(180) = 180');
+    assert(normalize360(359.5) > 359 && normalize360(359.5) < 360, 'normalize360(359.5) ≈ 359.5');
+    assert(normalize360(-360) === 0, 'normalize360(-360) = 0');
+    assert(normalize360(0.001) > 0, 'normalize360(0.001) > 0');
+    assert(normalize360(359.999) < 360, 'normalize360(359.999) < 360');
+
+    out.innerHTML += `\n<span class="section">=== getNakshatraIndex ===</span>\n`;
+
+    assert(getNakshatraIndex(0) === 0, '0° → nakshatra 0');
+    assert(getNakshatraIndex(13.33) === 0, '13.33° → nakshatra 0');
+    assert(getNakshatraIndex(13.34) === 1, '13.34° → nakshatra 1');
+    assert(getNakshatraIndex(26.66) === 1, '26.66° → nakshatra 1');
+    assert(getNakshatraIndex(26.67) === 2, '26.67° → nakshatra 2');
+    assert(getNakshatraIndex(356.66) === 26, '356.66° → nakshatra 26');
+    assert(getNakshatraIndex(359.99) === 26, '359.99° → nakshatra 26');
+    assert(getNakshatraIndex(360) === 0, '360° → nakshatra 0');
+    assert(getNakshatraIndex(-1) === 26, '-1° → nakshatra 26 (wraps)');
+    assert(getNakshatraIndex(13.333333) === 0, '13.333333° → nakshatra 0 (exact boundary)');
+
+    out.innerHTML += `\n<span class="section">=== getTaraNumber ===</span>\n`;
+
+    assert(getTaraNumber(0, 0) === 1, 'same nakshatra → tara 1 (Janma)');
+    assert(getTaraNumber(0, 1) === 2, '0→1 → tara 2');
+    assert(getTaraNumber(0, 2) === 3, '0→2 → tara 3');
+    assert(getTaraNumber(0, 26) === 27, '0→26 → tara 27');
+    assert(getTaraNumber(26, 0) === 2, '26→0 → tara 2');
+    assert(getTaraNumber(5, 14) === 10, '5→14 → tara 10');
+    assert(getTaraNumber(14, 5) === 19, '14→5 → tara 19 (wraps around)');
+    assert(getTaraNumber(0, 8) === 9, '0→8 → tara 9');
+    assert(getTaraNumber(0, 9) === 10, '0→9 → tara 10');
+    assert(getTaraNumber(13, 13) === 1, 'same index → tara 1');
+
+    out.innerHTML += `\n<span class="section">=== getTaraClass ===</span>\n`;
+
+    assert(getTaraClass(1) === 0, 'tara 1 → class index 0 (Janma)');
+    assert(getTaraClass(2) === 1, 'tara 2 → class index 1 (Sampat)');
+    assert(getTaraClass(9) === 8, 'tara 9 → class index 8');
+    assert(getTaraClass(10) === 0, 'tara 10 → class index 0 (Janma again)');
+    assert(getTaraClass(27) === 8, 'tara 27 → class index 8 (Ati-Mitra)');
+    assert(getTaraClass(18) === 8, 'tara 18 → class index 8');
+    assert(getTaraClass(19) === 0, 'tara 19 → class index 0 (Janma again)');
+    assert(getTaraClass(26) === 7, 'tara 26 → class index 7');
+
+    out.innerHTML += `\n<span class="section">=== getNakshatra / getTaraClassInfo ===</span>\n`;
+
+    assert(getNakshatra(0).nameRu === 'Ашвини', 'getNakshatra(0) = Ашвини');
+    assert(getNakshatra(14).nameRu === 'Свати', 'getNakshatra(14) = Свати');
+    assert(getNakshatra(15).nameRu === 'Вишакха', 'getNakshatra(15) = Вишакха');
+    assert(getNakshatra(15).nameSanskrit === 'Vishakha', 'getNakshatra(15) sanskrit = Vishakha');
+    assert(getTaraClassInfo(0).nameRu === 'Джанма', 'getTaraClassInfo(0) = Джанма');
+    assert(getTaraClassInfo(8).nameSanskrit === 'Param Mitra', 'getTaraClassInfo(8) = Param Mitra');
+    assert(getTaraClassInfo(2).favorability === 'danger', 'getTaraClassInfo(2) favorability = danger');
+
+    out.innerHTML += `\n<span class="section">=== checkBoundary ===</span>\n`;
+
+    assert(checkBoundary(0).isNearBoundary === true, '0° is boundary');
+    assert(checkBoundary(0).direction === 'entering', '0° direction = entering');
+
+    assert(checkBoundary(13.305).isNearBoundary === true, '13.305° is near boundary (end)');
+    assert(checkBoundary(13.305).direction === 'leaving', '13.305° direction = leaving');
+
+    assert(checkBoundary(7).isNearBoundary === false, '7° is NOT boundary');
+    assert(checkBoundary(6).isNearBoundary === false, '6° is NOT boundary');
+    assert(checkBoundary(5).isNearBoundary === false, '5° is NOT boundary');
+
+    const atThresh = NAKSHATRA_SIZE - 0.032;
+    assert(checkBoundary(atThresh).isNearBoundary === true, `${atThresh}° is near boundary`);
+    const justOutside = NAKSHATRA_SIZE - 0.034;
+    assert(checkBoundary(justOutside).isNearBoundary === false, `${justOutside}° is NOT boundary`);
+
+    // Boundary at nakshatra start
+    assert(checkBoundary(0.01).isNearBoundary === true, '0.01° is near boundary (start)');
+    assert(checkBoundary(0.04).isNearBoundary === false, '0.04° is NOT boundary');
+
+    // Mid-boundary (exactly middle of nakshatra)
+    assert(checkBoundary(NAKSHATRA_SIZE / 2).isNearBoundary === false, 'mid-nakshatra is NOT boundary');
+
+    out.innerHTML += `\n<span class="section">=== ИТОГО ===</span>\n`;
+    out.innerHTML += `Passed: ${passed}, Failed: ${failed}\n`;
+    if (failed === 0) {
+      out.innerHTML += `<span class="pass">ВСЕ ТЕСТЫ ПРОЙДЕНЫ</span>\n`;
+    } else {
+      out.innerHTML += `<span class="fail">ЕСТЬ ПАВШИЕ ТЕСТЫ</span>\n`;
+    }
+  </script>
+</body>
+</html>
