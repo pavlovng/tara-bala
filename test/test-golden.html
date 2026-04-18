@@ -16,12 +16,12 @@
   <pre id="out">Загрузка эфемерид...</pre>
 
   <script type="module">
-    import { initSwissEph, julday, getMoonSiderealLongitude, getAyanamsa } from './js/swiss.js';
+    import { initSwissEph, julday, getMoonSiderealLongitude, getAyanamsa } from '../js/swiss.js';
     import {
       getNakshatraIndex, getTaraNumber, getTaraClass,
       getNakshatra, checkBoundary
-    } from './js/calculator.js';
-    import { parseOffset } from './js/data.js';
+    } from '../js/calculator.js';
+    import { parseOffset } from '../js/data.js';
 
     const out = document.getElementById('out');
     let passed = 0, failed = 0;
