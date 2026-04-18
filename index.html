@@ -19,75 +19,80 @@
     </div>
 
     <div id="app" class="hidden">
-      <!-- Tabs -->
-      <div class="tabs">
-        <button class="tab active" data-tab="auto">Авто</button>
-        <button class="tab" data-tab="manual">Вручную</button>
-      </div>
+      <!-- Данные рождения -->
+      <section class="form-section">
+        <h3 class="form-section-title">Данные рождения</h3>
+        <div class="tabs">
+          <button class="tab active" data-tab="auto">Авто</button>
+          <button class="tab" data-tab="manual">Вручную</button>
+        </div>
 
-      <!-- Время расчёта (общее для обеих вкладок) -->
-      <div class="form-group">
-        <label for="calc-time-mode">Время расчёта</label>
-        <select id="calc-time-mode">
-          <option value="now" selected>Текущее время</option>
-          <option value="custom">Произвольное</option>
-        </select>
-      </div>
-      <div id="calc-custom-fields" class="hidden">
-        <div class="form-row">
+        <!-- AUTO mode -->
+        <div id="tab-auto" class="tab-content active">
           <div class="form-group">
-            <label for="calc-date">Дата расчёта</label>
-            <input type="date" id="calc-date">
+            <label for="birth-date">Дата рождения</label>
+            <input type="date" id="birth-date" required>
           </div>
           <div class="form-group">
-            <label for="calc-time">Время расчёта</label>
-            <input type="time" id="calc-time">
+            <label for="birth-time">Время рождения</label>
+            <input type="time" id="birth-time" required>
+            <span class="error-msg hidden" id="time-error">
+              Пожалуйста, укажите максимально приближённое время рождения. Без времени расчёт невозможен.
+            </span>
+          </div>
+          <div class="form-group">
+            <label for="timezone">Часовой пояс в момент рождения</label>
+            <select id="timezone"></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="latitude">Широта</label>
+              <input type="number" id="latitude" step="0.01" min="-90" max="90" placeholder="50.11" required>
+            </div>
+            <div class="form-group">
+              <label for="longitude">Долгота</label>
+              <input type="number" id="longitude" step="0.01" min="-180" max="180" placeholder="8.68" required>
+            </div>
           </div>
         </div>
-        <div class="form-group">
-          <label for="calc-utc">UTC смещение</label>
-          <select id="calc-utc"></select>
-        </div>
-      </div>
 
-      <!-- AUTO mode -->
-      <div id="tab-auto" class="tab-content active">
-        <div class="form-group">
-          <label for="birth-date">Дата рождения</label>
-          <input type="date" id="birth-date" required>
-        </div>
-        <div class="form-group">
-          <label for="birth-time">Время рождения</label>
-          <input type="time" id="birth-time" required>
-          <span class="error-msg hidden" id="time-error">
-            Пожалуйста, укажите максимально приближённое время рождения. Без времени расчёт невозможен.
-          </span>
-        </div>
-        <div class="form-group">
-          <label for="timezone">Часовой пояс в момент рождения</label>
-          <select id="timezone"></select>
-        </div>
-        <div class="form-row">
+        <!-- MANUAL mode -->
+        <div id="tab-manual" class="tab-content">
           <div class="form-group">
-            <label for="latitude">Широта</label>
-            <input type="number" id="latitude" step="0.01" min="-90" max="90" placeholder="50.11" required>
-          </div>
-          <div class="form-group">
-            <label for="longitude">Долгота</label>
-            <input type="number" id="longitude" step="0.01" min="-180" max="180" placeholder="8.68" required>
+            <label for="nakshatra-select">Накшатра рождения</label>
+            <select id="nakshatra-select"></select>
           </div>
         </div>
-        <button id="btn-calc-auto" class="btn">Рассчитать</button>
-      </div>
+      </section>
 
-      <!-- MANUAL mode -->
-      <div id="tab-manual" class="tab-content">
+      <!-- Время расчёта -->
+      <section class="form-section">
+        <h3 class="form-section-title">Время расчёта</h3>
         <div class="form-group">
-          <label for="nakshatra-select">Накшатра рождения</label>
-          <select id="nakshatra-select"></select>
+          <label for="calc-time-mode">Время расчёта</label>
+          <select id="calc-time-mode">
+            <option value="now" selected>Текущее время</option>
+            <option value="custom">Произвольное</option>
+          </select>
         </div>
-        <button id="btn-calc-manual" class="btn">Рассчитать</button>
-      </div>
+        <div id="calc-custom-fields" class="hidden">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="calc-date">Дата расчёта</label>
+              <input type="date" id="calc-date">
+            </div>
+            <div class="form-group">
+              <label for="calc-time">Время расчёта</label>
+              <input type="time" id="calc-time">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="calc-utc">UTC смещение</label>
+            <select id="calc-utc"></select>
+          </div>
+        </div>
+        <button id="btn-calculate" class="btn">Рассчитать</button>
+      </section>
 
       <!-- Result -->
       <div id="result" class="hidden">

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s https://marcboney.ru/)",
+      "Read(//tmp/**)",
+      "Bash(curl -s https://marcboney.ru/custom.css?t=1776162209)"
+    ]
+  }
+}

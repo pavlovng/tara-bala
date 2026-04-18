@@ -19,8 +19,9 @@ const timezoneSelect = document.getElementById('timezone');
 const latitude = document.getElementById('latitude');
 const longitude = document.getElementById('longitude');
 const nakshatraSelect = document.getElementById('nakshatra-select');
-const btnCalcAuto = document.getElementById('btn-calc-auto');
-const btnCalcManual = document.getElementById('btn-calc-manual');
+const btnCalculate = document.getElementById('btn-calculate');
+const tabAuto = document.getElementById('tab-auto');
+const tabManual = document.getElementById('tab-manual');
 const resultDiv = document.getElementById('result');
 const resultMeta = document.getElementById('result-meta');
 const resultJanma = document.getElementById('result-janma');
@@ -240,11 +241,13 @@ async function calculateAuto() {
   const currentIdx = getNakshatraIndex(currentLon);
   const taraNum = getTaraNumber(janmaIdx, currentIdx);
   const taraClassIdx = getTaraClass(taraNum);
+  const classInfo = getTaraClassInfo(taraClassIdx);
 
   resultMeta.textContent = calcLabel;
   resultJanma.textContent = `${getNakshatra(janmaIdx).id + 1} — ${getNakshatra(janmaIdx).nameRu} (${getNakshatra(janmaIdx).nameSanskrit})`;
   resultCurrent.textContent = `${getNakshatra(currentIdx).id + 1} — ${getNakshatra(currentIdx).nameRu} (${getNakshatra(currentIdx).nameSanskrit})`;
-  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>`;
+  const footnote = [19, 21, 25].includes(taraNum) ? ' <span class="tara-footnote">* Минимальное влияние</span>' : '';
+  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>${footnote}`;
   resultTaraRow.classList.toggle('tara-danger', [0, 2, 4, 6].includes(taraClassIdx) || taraNum === 22 || taraNum === 27);
 
   await handleBoundary(birthLon, birthJD, currentLon, calcJD, janmaIdx, currentIdx, tz, isNow);
@@ -273,7 +276,8 @@ async function calculateManual() {
   resultCurrent.textContent = `${getNakshatra(currentIdx).id + 1} — ${getNakshatra(currentIdx).nameRu} (${getNakshatra(currentIdx).nameSanskrit})`;
 
   const classInfo = getTaraClassInfo(taraClassIdx);
-  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>`;
+  const footnote = [19, 21, 25].includes(taraNum) ? ' <span class="tara-footnote">* Минимальное влияние</span>' : '';
+  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>${footnote}`;
   resultTaraRow.classList.toggle('tara-danger', [0, 2, 4, 6].includes(taraClassIdx) || taraNum === 22 || taraNum === 27);
 
   await handleBoundary(null, null, currentLon, calcJD, null, currentIdx, null, isNow);
@@ -365,14 +369,15 @@ function formatTime(date, timezone) {
 }
 
 // --- Event listeners ---
-btnCalcAuto.addEventListener('click', calculateAuto);
-btnCalcManual.addEventListener('click', calculateManual);
+btnCalculate.addEventListener('click', () => {
+  if (tabAuto.classList.contains('active')) calculateAuto();
+  else calculateManual();
+});
 
-// Enter key submits active tab form
-document.getElementById('tab-auto').addEventListener('keydown', e => {
+tabAuto.addEventListener('keydown', e => {
   if (e.key === 'Enter') calculateAuto();
 });
-document.getElementById('tab-manual').addEventListener('keydown', e => {
+tabManual.addEventListener('keydown', e => {
   if (e.key === 'Enter') calculateManual();
 });
 
