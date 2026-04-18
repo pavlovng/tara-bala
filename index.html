@@ -25,6 +25,31 @@
         <button class="tab" data-tab="manual">Вручную</button>
       </div>
 
+      <!-- Время расчёта (общее для обеих вкладок) -->
+      <div class="form-group">
+        <label for="calc-time-mode">Время расчёта</label>
+        <select id="calc-time-mode">
+          <option value="now" selected>Текущее время</option>
+          <option value="custom">Произвольное</option>
+        </select>
+      </div>
+      <div id="calc-custom-fields" class="hidden">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="calc-date">Дата расчёта</label>
+            <input type="date" id="calc-date">
+          </div>
+          <div class="form-group">
+            <label for="calc-time">Время расчёта</label>
+            <input type="time" id="calc-time">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="calc-utc">UTC смещение</label>
+          <select id="calc-utc"></select>
+        </div>
+      </div>
+
       <!-- AUTO mode -->
       <div id="tab-auto" class="tab-content active">
         <div class="form-group">
@@ -33,7 +58,7 @@
         </div>
         <div class="form-group">
           <label for="birth-time">Время рождения</label>
-          <input type="time" id="birth-time" step="1" required>
+          <input type="time" id="birth-time" required>
           <span class="error-msg hidden" id="time-error">
             Пожалуйста, укажите максимально приближённое время рождения. Без времени расчёт невозможен.
           </span>
@@ -73,15 +98,11 @@
           <span class="result-value" id="result-janma"></span>
         </div>
         <div class="result-row">
-          <span class="result-label">Текущая накшатра:</span>
+          <span class="result-label">Накшатра на момент расчёта:</span>
           <span class="result-value" id="result-current"></span>
         </div>
-        <div class="result-row">
-          <span class="result-label">Tara Number:</span>
-          <span class="result-value" id="result-tara-num"></span>
-        </div>
-        <div class="result-row">
-          <span class="result-label">Tara Class:</span>
+        <div class="result-row" id="result-tara-row">
+          <span class="result-label">Значение:</span>
           <span class="result-value" id="result-tara-class"></span>
         </div>
         <div id="result-boundary" class="boundary-warning hidden"></div>

@@ -34,14 +34,14 @@ export const NAKSHATRAS = [
 
 export const TARA_CLASSES = [
   { id: 0, nameRu: 'Джанма',      nameSanskrit: 'Janma',      favorability: 'negativ' },
-  { id: 1, nameRu: 'Самартхья',   nameSanskrit: 'Sampat',     favorability: 'wealth' },
+  { id: 1, nameRu: 'Сампат',   nameSanskrit: 'Sampat',     favorability: 'wealth' },
   { id: 2, nameRu: 'Випат',       nameSanskrit: 'Vipat',      favorability: 'danger' },
   { id: 3, nameRu: 'Кшема',       nameSanskrit: 'Kshema',     favorability: 'prosperity' },
-  { id: 4, nameRu: 'Пратьяк',     nameSanskrit: 'Prayari',    favorability: 'obstacles' },
-  { id: 5, nameRu: 'Садхака',     nameSanskrit: 'Sadhana',    favorability: 'realization' },
-  { id: 6, nameRu: 'Вадха',       nameSanskrit: 'Vadha',      favorability: 'dangers' },
+  { id: 4, nameRu: 'Пратьяк',     nameSanskrit: 'Pratyak',    favorability: 'obstacles' },
+  { id: 5, nameRu: 'Садхана',     nameSanskrit: 'Sadhana',    favorability: 'realization' },
+  { id: 6, nameRu: 'Найдхана',       nameSanskrit: 'Naidhana',      favorability: 'dangers' },
   { id: 7, nameRu: 'Митра',       nameSanskrit: 'Mitra',      favorability: 'good' },
-  { id: 8, nameRu: 'Ати-Митра',   nameSanskrit: 'Param Mitra',favorability: 'very_good' },
+  { id: 8, nameRu: 'Парам Митра',   nameSanskrit: 'Param Mitra',favorability: 'very_good' },
 ];
 
 export const TIMEZONES = [

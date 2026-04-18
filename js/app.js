@@ -28,6 +28,12 @@ const resultCurrent = document.getElementById('result-current');
 const resultTaraNum = document.getElementById('result-tara-num');
 const resultTaraClass = document.getElementById('result-tara-class');
 const resultBoundary = document.getElementById('result-boundary');
+const resultTaraRow = document.getElementById('result-tara-row');
+const calcTimeMode = document.getElementById('calc-time-mode');
+const calcCustomFields = document.getElementById('calc-custom-fields');
+const calcDate = document.getElementById('calc-date');
+const calcTime = document.getElementById('calc-time');
+const calcUTC = document.getElementById('calc-utc');
 
 // --- Init ---
 async function init() {
@@ -42,10 +48,22 @@ async function init() {
   app.classList.remove('hidden');
   populateTimezones();
   populateNakshatras();
+  populateUTCOffsets();
 
-  // Set default timezone to browser timezone
-  const browserTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  timezoneSelect.value = browserTZ;
+  // Set default timezone to browser UTC offset
+  const browserOffsetMin = -(new Date().getTimezoneOffset());
+  const tzMatch = TIMEZONES.find(tz => parseOffset(tz.value) === browserOffsetMin);
+  if (tzMatch) timezoneSelect.value = tzMatch.value;
+
+  // Toggle calc custom fields visibility + prefill current date/time
+  calcTimeMode.addEventListener('change', () => {
+    calcCustomFields.classList.toggle('hidden', calcTimeMode.value !== 'custom');
+    if (calcTimeMode.value === 'custom') {
+      const now = new Date();
+      calcDate.value = now.toISOString().slice(0, 10);
+      calcTime.value = now.toTimeString().slice(0, 5);
+    }
+  });
 }
 
 function populateTimezones() {
@@ -68,6 +86,19 @@ function populateNakshatras() {
     opt.textContent = `${n.id + 1} — ${n.nameRu} (${n.nameSanskrit})`;
     nakshatraSelect.appendChild(opt);
   });
+}
+
+function populateUTCOffsets() {
+  TIMEZONES.forEach(tz => {
+    const opt = document.createElement('option');
+    opt.value = tz.value;
+    opt.textContent = tz.label;
+    calcUTC.appendChild(opt);
+  });
+  // Default to browser UTC offset
+  const browserOffsetMin = -(new Date().getTimezoneOffset());
+  const match = TIMEZONES.find(tz => parseOffset(tz.value) === browserOffsetMin);
+  if (match) calcUTC.value = match.value;
 }
 
 // --- Tabs ---
@@ -144,6 +175,26 @@ function dateToJDElements(utcDate) {
   };
 }
 
+function validateCalcTime() {
+  if (calcTimeMode.value === 'now') return true;
+  if (!calcDate.value || !calcTime.value) return false;
+  return true;
+}
+
+function getCalcDateTime() {
+  if (calcTimeMode.value === 'now') {
+    const now = new Date();
+    const nd = dateToJDElements(now);
+    return { jd: julday(nd.year, nd.month, nd.day, nd.hour), label: `Текущее время: ${now.toLocaleString('ru-RU')}`, now: true };
+  }
+  const tz = calcUTC.value;
+  const utcDate = localToUTC(calcDate.value, calcTime.value, tz);
+  const d = dateToJDElements(utcDate);
+  const jd = julday(d.year, d.month, d.day, d.hour);
+  const utcLabel = tz.startsWith('offset:') ? tz.replace('offset:', 'UTC') : tz;
+  return { jd, label: `Произвольное: ${calcDate.value} ${calcTime.value} (${utcLabel})`, now: false };
+}
+
 // --- Validation ---
 function validateAuto() {
   let valid = true;
@@ -170,66 +221,68 @@ function validateAuto() {
 // --- Calculate AUTO ---
 async function calculateAuto() {
   if (!validateAuto()) return;
+  if (!validateCalcTime()) {
+    alert('Укажите дату и время расчёта.');
+    return;
+  }
 
   const tz = timezoneSelect.value;
   const utcDate = localToUTC(birthDate.value, birthTime.value, tz);
   const d = dateToJDElements(utcDate);
   const birthJD = julday(d.year, d.month, d.day, d.hour);
 
-  const now = new Date();
-  const nd = dateToJDElements(now);
-  const nowJD = julday(nd.year, nd.month, nd.day, nd.hour);
+  const { jd: calcJD, label: calcLabel, now: isNow } = getCalcDateTime();
 
   const birthLon = getMoonSiderealLongitude(birthJD);
-  const currentLon = getMoonSiderealLongitude(nowJD);
+  const currentLon = getMoonSiderealLongitude(calcJD);
 
   const janmaIdx = getNakshatraIndex(birthLon);
   const currentIdx = getNakshatraIndex(currentLon);
   const taraNum = getTaraNumber(janmaIdx, currentIdx);
   const taraClassIdx = getTaraClass(taraNum);
 
-  resultMeta.textContent = `Расчёт: ${now.toLocaleString('ru-RU')}`;
+  resultMeta.textContent = calcLabel;
   resultJanma.textContent = `${getNakshatra(janmaIdx).id + 1} — ${getNakshatra(janmaIdx).nameRu} (${getNakshatra(janmaIdx).nameSanskrit})`;
   resultCurrent.textContent = `${getNakshatra(currentIdx).id + 1} — ${getNakshatra(currentIdx).nameRu} (${getNakshatra(currentIdx).nameSanskrit})`;
-  resultTaraNum.textContent = taraNum;
+  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>`;
+  resultTaraRow.classList.toggle('tara-danger', [0, 2, 4, 6].includes(taraClassIdx) || taraNum === 22 || taraNum === 27);
 
-  const classInfo = getTaraClassInfo(taraClassIdx);
-  resultTaraClass.innerHTML = `${taraClassIdx + 1} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>`;
-
-  await handleBoundary(birthLon, birthJD, currentLon, nowJD, janmaIdx, currentIdx, tz);
+  await handleBoundary(birthLon, birthJD, currentLon, calcJD, janmaIdx, currentIdx, tz, isNow);
 
   resultDiv.classList.remove('hidden');
 }
 
 // --- Calculate MANUAL ---
 async function calculateManual() {
+  if (!validateCalcTime()) {
+    alert('Укажите дату и время расчёта.');
+    return;
+  }
+
   const janmaIdx = parseInt(nakshatraSelect.value, 10);
 
-  const now = new Date();
-  const nowUTC = now;
-  const nd = dateToJDElements(nowUTC);
-  const nowJD = julday(nd.year, nd.month, nd.day, nd.hour);
+  const { jd: calcJD, label: calcLabel, now: isNow } = getCalcDateTime();
 
-  const currentLon = getMoonSiderealLongitude(nowJD);
+  const currentLon = getMoonSiderealLongitude(calcJD);
   const currentIdx = getNakshatraIndex(currentLon);
   const taraNum = getTaraNumber(janmaIdx, currentIdx);
   const taraClassIdx = getTaraClass(taraNum);
 
-  resultMeta.textContent = `Расчёт: ${now.toLocaleString('ru-RU')}`;
+  resultMeta.textContent = calcLabel;
   resultJanma.textContent = `${getNakshatra(janmaIdx).id + 1} — ${getNakshatra(janmaIdx).nameRu} (${getNakshatra(janmaIdx).nameSanskrit})`;
   resultCurrent.textContent = `${getNakshatra(currentIdx).id + 1} — ${getNakshatra(currentIdx).nameRu} (${getNakshatra(currentIdx).nameSanskrit})`;
-  resultTaraNum.textContent = taraNum;
 
   const classInfo = getTaraClassInfo(taraClassIdx);
-  resultTaraClass.innerHTML = `${taraClassIdx + 1} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>`;
+  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>`;
+  resultTaraRow.classList.toggle('tara-danger', [0, 2, 4, 6].includes(taraClassIdx) || taraNum === 22 || taraNum === 27);
 
-  await handleBoundary(null, null, currentLon, nowJD, null, currentIdx);
+  await handleBoundary(null, null, currentLon, calcJD, null, currentIdx, null, isNow);
 
   resultDiv.classList.remove('hidden');
 }
 
 // --- Boundary handling ---
-async function handleBoundary(birthLon, birthJD, currentLon, nowJD, janmaIdx, currentIdx, birthTimezone) {
+async function handleBoundary(birthLon, birthJD, currentLon, nowJD, janmaIdx, currentIdx, birthTimezone, isNow) {
   const warnings = [];
 
   if (janmaIdx !== null) {
@@ -256,7 +309,8 @@ async function handleBoundary(birthLon, birthJD, currentLon, nowJD, janmaIdx, cu
       const toIdx = currentBound.direction === 'entering' ? currentIdx : currentIdx + 1;
       const from = getNakshatra((fromIdx + 27) % 27);
       const to = getNakshatra((toIdx + 27) % 27);
-      warnings.push(`Луна сейчас находится на границе накшатр <b>${from.nameRu}</b> и <b>${to.nameRu}</b>. Смена произойдёт в ${formatTime(boundDate)}.`);
+      const currentLabel = isNow ? 'сейчас находится' : 'на указанный момент находится';
+      warnings.push(`Луна ${currentLabel} на границе накшатр <b>${from.nameRu}</b> и <b>${to.nameRu}</b>. Смена произойдёт в ${formatTime(boundDate)}.`);
     }
   }
 

@@ -186,6 +186,14 @@ header h1 {
 .very_favorable { color: #1b5e20; font-weight: 600; }
 .neutral { color: #f57f17; font-weight: 600; }
 
+.tara-danger {
+  background: #fde8e8 !important;
+  border: 1px solid #d32f2f !important;
+  border-radius: 4px;
+  margin: 4px -4px;
+  padding: 8px 4px !important;
+}
+
 /* Boundary warning */
 .boundary-warning {
   margin-top: 12px;
