@@ -44,40 +44,6 @@ export const TARA_CLASSES = [
   { id: 8, nameRu: 'Парам Митра',   nameSanskrit: 'Param Mitra',favorability: 'very_good' },
 ];
 
-export const TIMEZONES = [
-  { value: 'offset:0',          label: 'UTC+0' },
-  { value: 'offset:+1',         label: 'UTC+1' },
-  { value: 'offset:+2',         label: 'UTC+2' },
-  { value: 'offset:+3',         label: 'UTC+3' },
-  { value: 'offset:+3:30',      label: 'UTC+3:30 (Иран)' },
-  { value: 'offset:+4',         label: 'UTC+4' },
-  { value: 'offset:+4:30',      label: 'UTC+4:30 (Афганистан)' },
-  { value: 'offset:+5',         label: 'UTC+5' },
-  { value: 'offset:+5:30',      label: 'UTC+5:30 (Индия)' },
-  { value: 'offset:+5:45',      label: 'UTC+5:45 (Непал)' },
-  { value: 'offset:+6',         label: 'UTC+6' },
-  { value: 'offset:+6:30',      label: 'UTC+6:30 (Мьянма)' },
-  { value: 'offset:+7',         label: 'UTC+7' },
-  { value: 'offset:+8',         label: 'UTC+8' },
-  { value: 'offset:+9',         label: 'UTC+9' },
-  { value: 'offset:+9:30',      label: 'UTC+9:30 (Австралия ЦТ)' },
-  { value: 'offset:+10',        label: 'UTC+10' },
-  { value: 'offset:+11',        label: 'UTC+11' },
-  { value: 'offset:+12',        label: 'UTC+12' },
-  { value: 'offset:-1',         label: 'UTC-1' },
-  { value: 'offset:-2',         label: 'UTC-2' },
-  { value: 'offset:-3',         label: 'UTC-3' },
-  { value: 'offset:-4',         label: 'UTC-4' },
-  { value: 'offset:-5',         label: 'UTC-5' },
-  { value: 'offset:-6',         label: 'UTC-6' },
-  { value: 'offset:-7',         label: 'UTC-7' },
-  { value: 'offset:-8',         label: 'UTC-8' },
-  { value: 'offset:-9',         label: 'UTC-9' },
-  { value: 'offset:-10',        label: 'UTC-10' },
-  { value: 'offset:-11',        label: 'UTC-11' },
-  { value: 'offset:-12',        label: 'UTC-12' },
-];
-
 export function parseOffset(timezone) {
   if (!timezone.startsWith('offset:')) return null;
   const str = timezone.slice(7);

@@ -5,7 +5,8 @@ import {
   getNakshatraIndex, getTaraNumber, getTaraClass,
   getNakshatra, getTaraClassInfo, checkBoundary, findBoundaryTime
 } from './calculator.js';
-import { NAKSHATRAS, TIMEZONES, parseOffset } from './data.js';
+import { NAKSHATRAS, parseOffset } from './data.js';
+import { createCitySearchHandler } from './geocoding.js';
 
 // --- DOM refs ---
 const loading = document.getElementById('loading');
@@ -34,7 +35,28 @@ const calcTimeMode = document.getElementById('calc-time-mode');
 const calcCustomFields = document.getElementById('calc-custom-fields');
 const calcDate = document.getElementById('calc-date');
 const calcTime = document.getElementById('calc-time');
-const calcUTC = document.getElementById('calc-utc');
+const calcTimezone = document.getElementById('calc-timezone');
+
+let birthCitySelected = false;
+let calcCitySelected = false;
+
+function updateButtonState() {
+  const isAuto = tabAuto.classList.contains('active');
+  const isCustomCalc = calcTimeMode.value === 'custom';
+
+  let ready;
+  if (isAuto) {
+    ready = !!birthDate.value && !!birthTime.value && birthCitySelected && !!timezoneSelect.value;
+  } else {
+    ready = true;
+  }
+
+  if (isCustomCalc) {
+    ready = ready && !!calcDate.value && !!calcTime.value;
+  }
+
+  btnCalculate.disabled = !ready;
+}
 
 // --- Init ---
 async function init() {
@@ -47,14 +69,12 @@ async function init() {
 
   loading.classList.add('hidden');
   app.classList.remove('hidden');
-  populateTimezones();
   populateNakshatras();
-  populateUTCOffsets();
 
-  // Set default timezone to browser UTC offset
-  const browserOffsetMin = -(new Date().getTimezoneOffset());
-  const tzMatch = TIMEZONES.find(tz => parseOffset(tz.value) === browserOffsetMin);
-  if (tzMatch) timezoneSelect.value = tzMatch.value;
+  // Default timezone from browser IANA
+  const browserTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  timezoneSelect.value = browserTZ;
+  calcTimezone.value = browserTZ;
 
   // Toggle calc custom fields visibility + prefill current date/time
   calcTimeMode.addEventListener('change', () => {
@@ -64,20 +84,44 @@ async function init() {
       calcDate.value = now.toISOString().slice(0, 10);
       calcTime.value = now.toTimeString().slice(0, 5);
     }
+    updateButtonState();
   });
-}
 
-function populateTimezones() {
-  TIMEZONES.forEach(tz => {
-    const opt = document.createElement('option');
-    opt.value = tz.value;
-    opt.textContent = tz.label;
-    if (tz.disabled) {
-      opt.disabled = true;
-      opt.selected = false;
-    }
-    timezoneSelect.appendChild(opt);
+  // City search — birth
+  const citySearch = document.getElementById('city-search');
+  const cityDropdown = document.getElementById('city-dropdown');
+  createCitySearchHandler(citySearch, cityDropdown, (city) => {
+    latitude.value = city.latitude.toFixed(2);
+    longitude.value = city.longitude.toFixed(2);
+    if (city.timezone) timezoneSelect.value = city.timezone;
+    birthCitySelected = true;
+    updateButtonState();
   });
+  citySearch.addEventListener('input', () => {
+    birthCitySelected = false;
+    updateButtonState();
+  });
+
+  // City search — calc
+  const calcCitySearch = document.getElementById('calc-city-search');
+  const calcCityDropdown = document.getElementById('calc-city-dropdown');
+  createCitySearchHandler(calcCitySearch, calcCityDropdown, (city) => {
+    if (city.timezone) calcTimezone.value = city.timezone;
+    calcCitySelected = true;
+    updateButtonState();
+  });
+  calcCitySearch.addEventListener('input', () => {
+    calcCitySelected = false;
+    updateButtonState();
+  });
+
+  // Wire up field changes to button state
+  birthDate.addEventListener('change', updateButtonState);
+  birthTime.addEventListener('change', updateButtonState);
+  nakshatraSelect.addEventListener('change', updateButtonState);
+  calcDate.addEventListener('change', updateButtonState);
+  calcTime.addEventListener('change', updateButtonState);
+  updateButtonState();
 }
 
 function populateNakshatras() {
@@ -89,19 +133,6 @@ function populateNakshatras() {
   });
 }
 
-function populateUTCOffsets() {
-  TIMEZONES.forEach(tz => {
-    const opt = document.createElement('option');
-    opt.value = tz.value;
-    opt.textContent = tz.label;
-    calcUTC.appendChild(opt);
-  });
-  // Default to browser UTC offset
-  const browserOffsetMin = -(new Date().getTimezoneOffset());
-  const match = TIMEZONES.find(tz => parseOffset(tz.value) === browserOffsetMin);
-  if (match) calcUTC.value = match.value;
-}
-
 // --- Tabs ---
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
@@ -110,6 +141,7 @@ tabs.forEach(tab => {
     tab.classList.add('active');
     document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
     resultDiv.classList.add('hidden');
+    updateButtonState();
   });
 });
 
@@ -183,17 +215,26 @@ function validateCalcTime() {
 }
 
 function getCalcDateTime() {
+  const tz = calcTimezone.value;
+  const tzLabel = tz;
+
   if (calcTimeMode.value === 'now') {
     const now = new Date();
+    if (tz) {
+      const localParts = getDateTimeParts(now, tz);
+      const localDate = new Date(Date.UTC(localParts.year, localParts.month, localParts.day, localParts.hour, localParts.minute, localParts.second));
+      const nd = dateToJDElements(localDate);
+      const label = `Текущее время (${tzLabel}): ${localParts.year}-${String(localParts.month + 1).padStart(2, '0')}-${String(localParts.day).padStart(2, '0')} ${String(localParts.hour).padStart(2, '0')}:${String(localParts.minute).padStart(2, '0')}`;
+      return { jd: julday(nd.year, nd.month, nd.day, nd.hour), label, now: true };
+    }
     const nd = dateToJDElements(now);
     return { jd: julday(nd.year, nd.month, nd.day, nd.hour), label: `Текущее время: ${now.toLocaleString('ru-RU')}`, now: true };
   }
-  const tz = calcUTC.value;
+
   const utcDate = localToUTC(calcDate.value, calcTime.value, tz);
   const d = dateToJDElements(utcDate);
   const jd = julday(d.year, d.month, d.day, d.hour);
-  const utcLabel = tz.startsWith('offset:') ? tz.replace('offset:', 'UTC') : tz;
-  return { jd, label: `Произвольное: ${calcDate.value} ${calcTime.value} (${utcLabel})`, now: false };
+  return { jd, label: `Произвольное: ${calcDate.value} ${calcTime.value} (${tzLabel})`, now: false };
 }
 
 // --- Validation ---
@@ -213,8 +254,6 @@ function validateAuto() {
   timeError.classList.add('hidden');
 
   if (!timezoneSelect.value) return false;
-  if (!latitude.value || latitude.value < -90 || latitude.value > 90) return false;
-  if (!longitude.value || longitude.value < -180 || longitude.value > 180) return false;
 
   return valid;
 }

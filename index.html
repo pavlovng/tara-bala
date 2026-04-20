@@ -40,18 +40,23 @@
               Пожалуйста, укажите максимально приближённое время рождения. Без времени расчёт невозможен.
             </span>
           </div>
+          <div class="form-group city-group">
+            <label for="city-search">Место рождения</label>
+            <input type="text" id="city-search" autocomplete="off" placeholder="Начните вводить название...">
+            <div id="city-dropdown" class="city-dropdown hidden"></div>
+          </div>
           <div class="form-group">
             <label for="timezone">Часовой пояс в момент рождения</label>
-            <select id="timezone"></select>
+            <input type="text" id="timezone" readonly>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="latitude">Широта</label>
-              <input type="number" id="latitude" step="0.01" min="-90" max="90" placeholder="50.11" required>
+              <input type="number" id="latitude" step="0.01" min="-90" max="90" placeholder="50.11" readonly>
             </div>
             <div class="form-group">
               <label for="longitude">Долгота</label>
-              <input type="number" id="longitude" step="0.01" min="-180" max="180" placeholder="8.68" required>
+              <input type="number" id="longitude" step="0.01" min="-180" max="180" placeholder="8.68" readonly>
             </div>
           </div>
         </div>
@@ -75,6 +80,15 @@
             <option value="custom">Произвольное</option>
           </select>
         </div>
+        <div class="form-group city-group">
+          <label for="calc-city-search">Место расчёта</label>
+          <input type="text" id="calc-city-search" autocomplete="off" placeholder="Начните вводить название...">
+          <div id="calc-city-dropdown" class="city-dropdown hidden"></div>
+        </div>
+        <div class="form-group">
+          <label for="calc-timezone">Часовой пояс расчёта</label>
+          <input type="text" id="calc-timezone" readonly>
+        </div>
         <div id="calc-custom-fields" class="hidden">
           <div class="form-row">
             <div class="form-group">
@@ -86,12 +100,8 @@
               <input type="time" id="calc-time">
             </div>
           </div>
-          <div class="form-group">
-            <label for="calc-utc">UTC смещение</label>
-            <select id="calc-utc"></select>
-          </div>
         </div>
-        <button id="btn-calculate" class="btn">Рассчитать</button>
+        <button id="btn-calculate" class="btn" disabled>Рассчитать</button>
       </section>
 
       <!-- Result -->

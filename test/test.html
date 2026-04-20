@@ -19,7 +19,7 @@
       normalize360, getNakshatraIndex, getTaraNumber, getTaraClass,
       getNakshatra, getTaraClassInfo, checkBoundary
     } from '../js/calculator.js';
-    import { NAKSHATRAS, TARA_CLASSES, TIMEZONES, NAKSHATRA_SIZE, parseOffset } from '../js/data.js';
+    import { NAKSHATRAS, TARA_CLASSES, NAKSHATRA_SIZE, parseOffset } from '../js/data.js';
 
     const out = document.getElementById('out');
     let passed = 0, failed = 0;
@@ -58,15 +58,6 @@
     assert(TARA_CLASSES[6].favorability === 'dangers', 'Вадха favorability = dangers');
     assert(TARA_CLASSES[7].favorability === 'good', 'Митра favorability = good');
     assert(TARA_CLASSES[8].favorability === 'very_good', 'Ати-Митра favorability = very_good');
-
-    out.innerHTML += `\n<span class="section">=== TIMEZONES ===</span>\n`;
-
-    assert(TIMEZONES.length >= 30, `>=30 timezones, got ${TIMEZONES.length}`);
-    assert(TIMEZONES.some(tz => tz.value === 'offset:+3'), 'Has UTC+3');
-    assert(TIMEZONES.some(tz => tz.value === 'offset:+4'), 'Has UTC+4');
-    assert(TIMEZONES.some(tz => tz.value === 'offset:+5:30'), 'Has UTC+5:30');
-    assert(TIMEZONES.some(tz => tz.value === 'offset:-5'), 'Has UTC-5');
-    assert(TIMEZONES.every(tz => tz.value && tz.label), 'All timezones have value and label');
 
     out.innerHTML += `\n<span class="section">=== parseOffset ===</span>\n`;
 
