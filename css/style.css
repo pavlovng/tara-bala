@@ -296,7 +296,8 @@ header h1 {
   transition: background 0.15s;
 }
 
-.city-item:hover {
+.city-item:hover,
+.city-item.active {
   background: rgba(255,255,255,0.1);
 }
 

@@ -64,7 +64,34 @@ export function createCitySearchHandler(inputEl, dropdownEl, onCitySelect) {
   });
 
   inputEl.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+    const items = dropdownEl.querySelectorAll('.city-item');
+    if (items.length === 0) {
+      if (e.key === 'Escape') {
+        dropdownEl.classList.add('hidden');
+        dropdownEl.innerHTML = '';
+      }
+      return;
+    }
+
+    const active = dropdownEl.querySelector('.city-item.active');
+    let idx = active ? Array.from(items).indexOf(active) : -1;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (active) active.classList.remove('active');
+      idx = (idx + 1) % items.length;
+      items[idx].classList.add('active');
+      items[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (active) active.classList.remove('active');
+      idx = idx <= 0 ? items.length - 1 : idx - 1;
+      items[idx].classList.add('active');
+      items[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && active) {
+      e.preventDefault();
+      active.dispatchEvent(new Event('mousedown'));
+    } else if (e.key === 'Escape') {
       dropdownEl.classList.add('hidden');
       dropdownEl.innerHTML = '';
     }
