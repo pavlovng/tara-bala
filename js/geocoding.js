@@ -38,13 +38,39 @@ export async function searchCities(query) {
 
 export function createCitySearchHandler(inputEl, dropdownEl, onCitySelect) {
   let timeout;
+  let items = [];
+  let highlightedIdx = -1;
+  let suppressInput = false;
+
+  function highlightItem(idx) {
+    const elements = dropdownEl.children;
+    for (let i = 0; i < elements.length; i++) {
+      elements[i].classList.toggle('active', i === idx);
+    }
+  }
+
+  function selectCity(city) {
+    suppressInput = true;
+    inputEl.value = city.name;
+    dropdownEl.classList.add('hidden');
+    dropdownEl.innerHTML = '';
+    items = [];
+    highlightedIdx = -1;
+    onCitySelect(city);
+  }
 
   inputEl.addEventListener('input', () => {
+    if (suppressInput) {
+      suppressInput = false;
+      return;
+    }
     clearTimeout(timeout);
+    highlightedIdx = -1;
     const query = inputEl.value.trim();
     if (query.length < MIN_QUERY_LEN) {
       dropdownEl.classList.add('hidden');
       dropdownEl.innerHTML = '';
+      items = [];
       return;
     }
     timeout = setTimeout(async () => {
@@ -52,19 +78,15 @@ export function createCitySearchHandler(inputEl, dropdownEl, onCitySelect) {
       if (cities.length === 0) {
         dropdownEl.classList.add('hidden');
         dropdownEl.innerHTML = '';
+        items = [];
         return;
       }
-      renderDropdown(dropdownEl, cities, (city) => {
-        inputEl.value = city.name;
-        dropdownEl.classList.add('hidden');
-        dropdownEl.innerHTML = '';
-        onCitySelect(city);
-      });
+      items = cities;
+      renderDropdown(dropdownEl, cities, selectCity);
     }, DEBOUNCE_MS);
   });
 
   inputEl.addEventListener('keydown', (e) => {
-    const items = dropdownEl.querySelectorAll('.city-item');
     if (items.length === 0) {
       if (e.key === 'Escape') {
         dropdownEl.classList.add('hidden');
@@ -73,27 +95,23 @@ export function createCitySearchHandler(inputEl, dropdownEl, onCitySelect) {
       return;
     }
 
-    const active = dropdownEl.querySelector('.city-item.active');
-    let idx = active ? Array.from(items).indexOf(active) : -1;
-
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      if (active) active.classList.remove('active');
-      idx = (idx + 1) % items.length;
-      items[idx].classList.add('active');
-      items[idx].scrollIntoView({ block: 'nearest' });
+      highlightedIdx = (highlightedIdx + 1) % items.length;
+      highlightItem(highlightedIdx);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      if (active) active.classList.remove('active');
-      idx = idx <= 0 ? items.length - 1 : idx - 1;
-      items[idx].classList.add('active');
-      items[idx].scrollIntoView({ block: 'nearest' });
-    } else if (e.key === 'Enter' && active) {
+      highlightedIdx = highlightedIdx <= 0 ? items.length - 1 : highlightedIdx - 1;
+      highlightItem(highlightedIdx);
+    } else if (e.key === 'Enter' && highlightedIdx >= 0) {
       e.preventDefault();
-      active.dispatchEvent(new Event('mousedown'));
+      e.stopPropagation();
+      selectCity(items[highlightedIdx]);
     } else if (e.key === 'Escape') {
       dropdownEl.classList.add('hidden');
       dropdownEl.innerHTML = '';
+      items = [];
+      highlightedIdx = -1;
     }
   });
 
@@ -108,6 +126,8 @@ export function createCitySearchHandler(inputEl, dropdownEl, onCitySelect) {
     if (!inputEl.contains(e.target) && !dropdownEl.contains(e.target)) {
       dropdownEl.classList.add('hidden');
       dropdownEl.innerHTML = '';
+      items = [];
+      highlightedIdx = -1;
     }
   });
 }

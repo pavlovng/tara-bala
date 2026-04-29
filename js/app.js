@@ -51,6 +51,8 @@ function updateButtonState() {
     ready = true;
   }
 
+  ready = ready && calcCitySelected;
+
   if (isCustomCalc) {
     ready = ready && !!calcDate.value && !!calcTime.value;
   }
@@ -412,11 +414,11 @@ btnCalculate.addEventListener('click', () => {
   else calculateManual();
 });
 
-tabAuto.addEventListener('keydown', e => {
-  if (e.key === 'Enter') calculateAuto();
-});
-tabManual.addEventListener('keydown', e => {
-  if (e.key === 'Enter') calculateManual();
+app.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !btnCalculate.disabled) {
+    e.preventDefault();
+    btnCalculate.click();
+  }
 });
 
 // --- Start ---
