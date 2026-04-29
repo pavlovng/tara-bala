@@ -222,8 +222,7 @@ function getCalcDateTime() {
     const now = new Date();
     if (tz) {
       const localParts = getDateTimeParts(now, tz);
-      const localDate = new Date(Date.UTC(localParts.year, localParts.month, localParts.day, localParts.hour, localParts.minute, localParts.second));
-      const nd = dateToJDElements(localDate);
+      const nd = dateToJDElements(now);
       const label = `Текущее время (${tzLabel}): ${localParts.year}-${String(localParts.month + 1).padStart(2, '0')}-${String(localParts.day).padStart(2, '0')} ${String(localParts.hour).padStart(2, '0')}:${String(localParts.minute).padStart(2, '0')}`;
       return { jd: julday(nd.year, nd.month, nd.day, nd.hour), label, now: true };
     }
