@@ -47,10 +47,11 @@ export const TARA_CLASSES = [
 export function parseOffset(timezone) {
   if (!timezone.startsWith('offset:')) return null;
   const str = timezone.slice(7);
-  const parts = str.split(':');
+  const sign = str.startsWith('-') ? -1 : 1;
+  const parts = str.replace(/^[+-]/, '').split(':');
   const hours = parseInt(parts[0], 10);
   const minutes = parts[1] ? parseInt(parts[1], 10) : 0;
-  return hours * 60 + minutes; // total offset in minutes
+  return sign * (hours * 60 + minutes); // total offset in minutes
 }
 
 export const BOUNDARY_THRESHOLD_DEG = 0.033; // ~2 arcminutes

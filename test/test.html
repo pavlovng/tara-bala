@@ -65,6 +65,7 @@
     assert(parseOffset('offset:-5') === -300, 'offset:-5 = -300 min');
     assert(parseOffset('offset:+5:30') === 330, 'offset:+5:30 = 330 min');
     assert(parseOffset('offset:+5:45') === 345, 'offset:+5:45 = 345 min');
+    assert(parseOffset('offset:-3:30') === -210, 'offset:-3:30 = -210 min');
     assert(parseOffset('offset:0') === 0, 'offset:0 = 0 min');
     assert(parseOffset('offset:-12') === -720, 'offset:-12 = -720 min');
     assert(parseOffset('Europe/Moscow') === null, 'IANA timezone returns null');

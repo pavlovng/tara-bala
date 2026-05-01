@@ -5,13 +5,8 @@ const MIN_QUERY_LEN = 3;
 const DEBOUNCE_MS = 300;
 const MAX_RESULTS = 8;
 
-let abortController = null;
-
-export async function searchCities(query) {
+export async function searchCities(query, signal) {
   if (!query || query.length < MIN_QUERY_LEN) return [];
-
-  if (abortController) abortController.abort();
-  abortController = new AbortController();
 
   const params = new URLSearchParams({
     name: query,
@@ -20,7 +15,7 @@ export async function searchCities(query) {
     format: 'json',
   });
 
-  const response = await fetch(`${API_URL}?${params}`, { signal: abortController.signal });
+  const response = await fetch(`${API_URL}?${params}`, { signal });
   if (!response.ok) return [];
 
   const data = await response.json();
@@ -38,6 +33,7 @@ export async function searchCities(query) {
 
 export function createCitySearchHandler(inputEl, dropdownEl, onCitySelect) {
   let timeout;
+  let abortController = null;
   let items = [];
   let highlightedIdx = -1;
   let suppressInput = false;
@@ -65,6 +61,10 @@ export function createCitySearchHandler(inputEl, dropdownEl, onCitySelect) {
       return;
     }
     clearTimeout(timeout);
+    if (abortController) {
+      abortController.abort();
+      abortController = null;
+    }
     highlightedIdx = -1;
     const query = inputEl.value.trim();
     if (query.length < MIN_QUERY_LEN) {
@@ -74,7 +74,25 @@ export function createCitySearchHandler(inputEl, dropdownEl, onCitySelect) {
       return;
     }
     timeout = setTimeout(async () => {
-      const cities = await searchCities(query);
+      const controller = new AbortController();
+      abortController = controller;
+
+      let cities;
+      try {
+        cities = await searchCities(query, controller.signal);
+      } catch (e) {
+        if (e.name !== 'AbortError') {
+          dropdownEl.classList.add('hidden');
+          dropdownEl.innerHTML = '';
+          items = [];
+        }
+        return;
+      } finally {
+        if (abortController === controller) abortController = null;
+      }
+
+      if (controller.signal.aborted || inputEl.value.trim() !== query) return;
+
       if (cities.length === 0) {
         dropdownEl.classList.add('hidden');
         dropdownEl.innerHTML = '';

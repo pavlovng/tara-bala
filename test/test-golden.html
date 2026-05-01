@@ -19,7 +19,7 @@
     import { initSwissEph, julday, getMoonSiderealLongitude, getAyanamsa } from '../js/swiss.js';
     import {
       getNakshatraIndex, getTaraNumber, getTaraClass,
-      getNakshatra, checkBoundary
+      getNakshatra, checkBoundary, normalize360
     } from '../js/calculator.js';
     import { parseOffset } from '../js/data.js';
 
@@ -46,6 +46,7 @@
     assert(parseOffset('offset:+4') === 240, 'UTC+4 = 240 min');
     assert(parseOffset('offset:-5') === -300, 'UTC-5 = -300 min');
     assert(parseOffset('offset:+5:30') === 330, 'UTC+5:30 = 330 min');
+    assert(parseOffset('offset:-3:30') === -210, 'UTC-3:30 = -210 min');
     assert(parseOffset('offset:0') === 0, 'UTC+0 = 0 min');
 
     // --- Swiss Ephemeris ---

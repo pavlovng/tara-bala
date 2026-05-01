@@ -1,6 +1,6 @@
 // Tara Bala/js/app.js
 
-import { initSwissEph, julday, getMoonSiderealLongitude, getAyanamsa } from './swiss.js';
+import { initSwissEph, julday, getMoonSiderealLongitude } from './swiss.js';
 import {
   getNakshatraIndex, getTaraNumber, getTaraClass,
   getNakshatra, getTaraClassInfo, checkBoundary, findBoundaryTime
@@ -22,12 +22,10 @@ const longitude = document.getElementById('longitude');
 const nakshatraSelect = document.getElementById('nakshatra-select');
 const btnCalculate = document.getElementById('btn-calculate');
 const tabAuto = document.getElementById('tab-auto');
-const tabManual = document.getElementById('tab-manual');
 const resultDiv = document.getElementById('result');
 const resultMeta = document.getElementById('result-meta');
 const resultJanma = document.getElementById('result-janma');
 const resultCurrent = document.getElementById('result-current');
-const resultTaraNum = document.getElementById('result-tara-num');
 const resultTaraClass = document.getElementById('result-tara-class');
 const resultBoundary = document.getElementById('result-boundary');
 const resultTaraRow = document.getElementById('result-tara-row');
