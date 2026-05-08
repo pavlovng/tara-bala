@@ -17,8 +17,6 @@ const birthDate = document.getElementById('birth-date');
 const birthTime = document.getElementById('birth-time');
 const timeError = document.getElementById('time-error');
 const timezoneSelect = document.getElementById('timezone');
-const latitude = document.getElementById('latitude');
-const longitude = document.getElementById('longitude');
 const nakshatraSelect = document.getElementById('nakshatra-select');
 const btnCalculate = document.getElementById('btn-calculate');
 const tabAuto = document.getElementById('tab-auto');
@@ -91,8 +89,6 @@ async function init() {
   const citySearch = document.getElementById('city-search');
   const cityDropdown = document.getElementById('city-dropdown');
   createCitySearchHandler(citySearch, cityDropdown, (city) => {
-    latitude.value = city.latitude.toFixed(2);
-    longitude.value = city.longitude.toFixed(2);
     if (city.timezone) timezoneSelect.value = city.timezone;
     birthCitySelected = true;
     updateButtonState();
