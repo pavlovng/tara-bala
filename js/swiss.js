@@ -1,10 +1,12 @@
 // Tara Bala/js/swiss.js
 
+const LIB_VERSION = '1';
+
 let swe = null;
 
 export async function initSwissEph() {
   const { default: SwissEph } = await import(
-    'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js'
+    `../lib/swisseph/src/swisseph.js?v=${LIB_VERSION}`
   );
   swe = new SwissEph();
   await swe.initSwissEph();

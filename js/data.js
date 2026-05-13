@@ -3,7 +3,7 @@
 export const NAKSHATRA_SIZE = 360 / 27;
 
 export const NAKSHATRAS = [
-  { id: 0,  nameRu: 'Ашвини',          nameSanskrit: 'Ashwini' },
+  { id: 0,  nameRu: 'Ашвини',           nameSanskrit: 'Ashwini' },
   { id: 1,  nameRu: 'Бхарани',          nameSanskrit: 'Bharani' },
   { id: 2,  nameRu: 'Криттика',         nameSanskrit: 'Krittika' },
   { id: 3,  nameRu: 'Рохини',           nameSanskrit: 'Rohini' },
@@ -34,14 +34,14 @@ export const NAKSHATRAS = [
 
 export const TARA_CLASSES = [
   { id: 0, nameRu: 'Джанма',      nameSanskrit: 'Janma',      favorability: 'negativ' },
-  { id: 1, nameRu: 'Сампат',   nameSanskrit: 'Sampat',     favorability: 'wealth' },
+  { id: 1, nameRu: 'Сампат',   	  nameSanskrit: 'Sampat',     favorability: 'wealth' },
   { id: 2, nameRu: 'Випат',       nameSanskrit: 'Vipat',      favorability: 'danger' },
   { id: 3, nameRu: 'Кшема',       nameSanskrit: 'Kshema',     favorability: 'prosperity' },
   { id: 4, nameRu: 'Пратьяк',     nameSanskrit: 'Pratyak',    favorability: 'obstacles' },
   { id: 5, nameRu: 'Садхана',     nameSanskrit: 'Sadhana',    favorability: 'realization' },
-  { id: 6, nameRu: 'Найдхана',       nameSanskrit: 'Naidhana',      favorability: 'dangers' },
+  { id: 6, nameRu: 'Найдхана',    nameSanskrit: 'Naidhana',   favorability: 'dangers' },
   { id: 7, nameRu: 'Митра',       nameSanskrit: 'Mitra',      favorability: 'good' },
-  { id: 8, nameRu: 'Парам Митра',   nameSanskrit: 'Param Mitra',favorability: 'very_good' },
+  { id: 8, nameRu: 'Парам Митра', nameSanskrit: 'Param Mitra',favorability: 'very_good' },
 ];
 
 export function parseOffset(timezone) {

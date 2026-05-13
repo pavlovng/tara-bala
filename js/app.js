@@ -280,8 +280,11 @@ async function calculateAuto() {
   resultMeta.textContent = calcLabel;
   resultJanma.textContent = `${getNakshatra(janmaIdx).id + 1} — ${getNakshatra(janmaIdx).nameRu} (${getNakshatra(janmaIdx).nameSanskrit})`;
   resultCurrent.textContent = `${getNakshatra(currentIdx).id + 1} — ${getNakshatra(currentIdx).nameRu} (${getNakshatra(currentIdx).nameSanskrit})`;
+  const avoidLabel = taraNum === 22 || taraNum === 27;
   const footnote = [19, 21, 25].includes(taraNum) ? ' <span class="tara-footnote">* Минимальное влияние</span>' : '';
-  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>${footnote}`;
+  const favLabel = avoidLabel ? 'Лучше избегать' : favorabilityLabel(classInfo.favorability);
+  const favClass = avoidLabel ? 'avoid' : classInfo.favorability;
+  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${favClass}">(${favLabel})</span>${footnote}`;
   resultTaraRow.classList.toggle('tara-danger', [0, 2, 4, 6].includes(taraClassIdx) || taraNum === 22 || taraNum === 27);
 
   await handleBoundary(birthLon, birthJD, currentLon, calcJD, janmaIdx, currentIdx, tz, isNow);
@@ -310,8 +313,11 @@ async function calculateManual() {
   resultCurrent.textContent = `${getNakshatra(currentIdx).id + 1} — ${getNakshatra(currentIdx).nameRu} (${getNakshatra(currentIdx).nameSanskrit})`;
 
   const classInfo = getTaraClassInfo(taraClassIdx);
+  const avoidLabel = taraNum === 22 || taraNum === 27;
   const footnote = [19, 21, 25].includes(taraNum) ? ' <span class="tara-footnote">* Минимальное влияние</span>' : '';
-  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${classInfo.favorability}">(${favorabilityLabel(classInfo.favorability)})</span>${footnote}`;
+  const favLabel = avoidLabel ? 'Лучше избегать' : favorabilityLabel(classInfo.favorability);
+  const favClass = avoidLabel ? 'avoid' : classInfo.favorability;
+  resultTaraClass.innerHTML = `${taraNum} — ${classInfo.nameRu} (${classInfo.nameSanskrit}) <span class="${favClass}">(${favLabel})</span>${footnote}`;
   resultTaraRow.classList.toggle('tara-danger', [0, 2, 4, 6].includes(taraClassIdx) || taraNum === 22 || taraNum === 27);
 
   await handleBoundary(null, null, currentLon, calcJD, null, currentIdx, null, isNow);
@@ -366,8 +372,7 @@ function favorabilityLabel(f) {
     case 'favorable': return 'Благоприятная';
     case 'very_favorable': return 'Очень благоприятная';
     case 'unfavorable': return 'Неблагоприятная';
-    case 'neutral': return 'Нейтральная';
-	
+    case 'neutral': return 'Нейтральная';	
 	case 'negativ': return 'Негатив, опасность для тела';
 	case 'wealth': return 'Богатство, процветание';
 	case 'danger': return 'Опасно, потери, несчастные случаи';
